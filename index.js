@@ -66,15 +66,83 @@ async function run() {
       });
 
     // tasks APIs
+    // tasks APIs
     app.post("/tasks", verifyToken, async (req, res) => {
       try {
         const task = req.body;
         const result = await taskCollection.insertOne(task);
         res.status(201).send(result);
-      } 
-      
-      catch (error) {
+      } catch (error) {
         res.status(500).send({ message: "err adding task", error });
+      }
+    });
+
+    app.get("/tasks", verifyToken, async (req, res) => {
+      try {
+        const userEmail = req.decoded.email;
+        const tasks = await taskCollection.find({ userEmail: userEmail }).toArray();
+        res.send(tasks);
+      } catch (error) {
+        res.status(500).send({ message: "Error fetching tasks", error });
+      }
+    });
+
+    app.get("/tasks/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+    
+        // Check if id is a valid MongoDB ObjectId
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({ message: "Invalid task ID format" });
+        }
+    
+        const query = { _id: new ObjectId(id) };
+        const result = await taskCollection.findOne(query);
+    
+        if (!result) {
+          return res.status(404).send({ message: "Task not found" });
+        }
+    
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
+    // PUT endpoint to update task by id
+    app.put("/tasks/:id", verifyToken, async (req, res) => {
+      try {
+        const id = new ObjectId(req.params.id);  
+        const updatedTask = req.body;
+      
+        
+        const result = await taskCollection.updateOne({ _id: id },  
+          {
+            $set: updatedTask,
+          }
+        );
+      
+        if (result.modifiedCount === 0) {
+          return res.status(404).send({ message: "Task not found or no changes made" });
+        }
+      
+        res.send({ message: "Task updated successfully", updatedTask });
+      } catch (error) {
+        res.status(500).send({ message: "Error updating task", error });
+      }
+    });
+
+    app.delete("/tasks/:id", verifyToken, async (req, res) => {
+      try {
+        const id = new ObjectId(req.params.id);
+        const result = await taskCollection.deleteOne({ _id: id });
+
+        if (result.deletedCount === 0) 
+          return res.status(404).send({ message: "Task not found" });
+
+        res.send({ message: "Task deleted successfully" });
+      } catch (error) {
+        res.status(500).send({ message: "Error deleting task", error });
       }
     });
 
