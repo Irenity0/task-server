@@ -66,7 +66,6 @@ async function run() {
       });
 
     // tasks APIs
-    // tasks APIs
     app.post("/tasks", verifyToken, async (req, res) => {
       try {
         const task = req.body;
