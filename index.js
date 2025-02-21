@@ -55,19 +55,14 @@ async function run() {
 
     // user APIs
     app.post('/users', async (req, res) => {
-        const user = req.body;
-        try {
-          const existingUser = await userCollection.findOne({ email: user.email });
-          if (existingUser) {
-            return res.status(400).json({ message: 'User already exists', insertedId: null });
-          }
-          const result = await userCollection.insertOne(user);
-          res.status(201).json({ message: 'User created', insertedId: result.insertedId });
-        } 
-        catch (err) {
-          console.error('Error:', err);
-          res.status(500).json({ message: 'Error creating user', error: err.message });
-        }
+        const users = req.body;
+      const query = { email: users.email };
+      const existingUser = await userCollection.findOne(query);
+      if (existingUser) {
+        return res.send({ message: "user already exists" });
+      }
+      const result = await userCollection.insertOne(users);
+      res.send(result);
       });
 
 
