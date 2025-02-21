@@ -65,6 +65,18 @@ async function run() {
       res.send(result);
       });
 
+    // tasks APIs
+    app.post("/tasks", verifyToken, async (req, res) => {
+      try {
+        const task = req.body;
+        const result = await taskCollection.insertOne(task);
+        res.status(201).send(result);
+      } 
+      
+      catch (error) {
+        res.status(500).send({ message: "err adding task", error });
+      }
+    });
 
 
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
