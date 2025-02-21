@@ -132,6 +132,40 @@ async function run() {
       }
     });
 
+    app.patch("/tasks/:id/status", verifyToken, async (req, res) => {
+      try {
+        const id = req.params.id;
+        
+        // Check if the ID is valid
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({ message: "Invalid task ID format" });
+        }
+    
+        const { status } = req.body;  // Expecting the status to be passed in the request body
+    
+        // Validate if status is provided
+        if (!status) {
+          return res.status(400).send({ message: "Status is required" });
+        }
+    
+        // Update only the status of the task
+        const result = await taskCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: { status } }
+        );
+    
+        if (result.modifiedCount === 0) {
+          return res.status(404).send({ message: "Task not found or no changes made" });
+        }
+    
+        res.send({ message: "Task status updated successfully", status });
+      } catch (error) {
+        console.error("Error updating task status:", error); // Log the error
+        res.status(500).send({ message: "Error updating task status", error });
+      }
+    });
+    
+
     app.delete("/tasks/:id", verifyToken, async (req, res) => {
       try {
         const id = new ObjectId(req.params.id);
